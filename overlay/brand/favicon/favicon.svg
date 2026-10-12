@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="DSH 画板">
+  <title>DSH 画板</title>
+  <!--
+    DSH 画板工作台 · 应用图标（方形版）。
+    矢量源文件在本包 overlay/brand/favicon/ 下；favicon.ico 由 scripts/render-brand.mjs
+    渲染多尺寸后打包生成。设计上是横向标识里那枚标记的放大版：
+    渐变圆角方块 + 一块白板轮廓 + 一笔草稿。
+    小尺寸（16px）下只保留最粗的三笔，保证仍然认得出。
+  -->
+  <defs>
+    <linearGradient id="faviconMark" x1="40" y1="40" x2="472" y2="472" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3B7DFF"/>
+      <stop offset="1" stop-color="#12B5A5"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#faviconMark)"/>
+
+  <!-- 白板轮廓 -->
+  <rect x="150" y="150" width="212" height="212" rx="46" fill="none" stroke="#FFFFFF" stroke-width="30" opacity=".96"/>
+  <!-- 一笔草稿 -->
+  <path d="M196 318 268 246" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round"/>
+  <circle cx="302" cy="212" r="23" fill="#FFFFFF"/>
+</svg>

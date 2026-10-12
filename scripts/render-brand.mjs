@@ -23,6 +23,37 @@ import { fileURLToPath } from 'node:url'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const brandRoot = join(root, 'overlay', 'brand')
 const BRAND_DIRS = ['logo', 'product_showcase']
+// 应用图标：矢量源 `favicon/favicon.svg` → 多尺寸 PNG → 打包成 `favicon.ico`。
+// ICO 里直接内嵌 PNG（Vista 起支持），比传统 DIB 更小也更清晰。
+const FAVICON_DIR = join(brandRoot, 'favicon')
+const FAVICON_SVG = join(FAVICON_DIR, 'favicon.svg')
+const FAVICON_ICO = join(FAVICON_DIR, 'favicon.ico')
+const FAVICON_SIZES = [16, 24, 32, 48, 64, 128, 256]
+
+/** 按 ICO 格式把若干张 PNG 打包成一个 .ico。 */
+function packIco(images) {
+  const header = Buffer.alloc(6)
+  header.writeUInt16LE(0, 0) // reserved
+  header.writeUInt16LE(1, 2) // type: 1 = icon
+  header.writeUInt16LE(images.length, 4)
+  const entries = Buffer.alloc(16 * images.length)
+  let offset = 6 + 16 * images.length
+  images.forEach((image, index) => {
+    const entry = index * 16
+    // 256 在 ICO 里用 0 表示（一个字节放不下 256）
+    const dimension = image.size >= 256 ? 0 : image.size
+    entries.writeUInt8(dimension, entry + 0)
+    entries.writeUInt8(dimension, entry + 1)
+    entries.writeUInt8(0, entry + 2) // 调色板数
+    entries.writeUInt8(0, entry + 3) // reserved
+    entries.writeUInt16LE(1, entry + 4) // 色彩平面
+    entries.writeUInt16LE(32, entry + 6) // 位深
+    entries.writeUInt32LE(image.png.length, entry + 8)
+    entries.writeUInt32LE(offset, entry + 12)
+    offset += image.png.length
+  })
+  return Buffer.concat([header, entries, ...images.map((image) => image.png)])
+}
 
 function arg(name, fallback) {
   const index = process.argv.indexOf(name)
@@ -84,12 +115,33 @@ for (const directory of BRAND_DIRS) {
   }
 }
 
+// 应用图标：多尺寸 PNG 打包成 favicon.ico
+if (!existsSync(FAVICON_SVG)) {
+  console.error(`[brand] 缺少图标源文件：${FAVICON_SVG}`)
+  process.exit(1)
+}
+const iconFresh = existsSync(FAVICON_ICO) && statSync(FAVICON_ICO).mtimeMs >= statSync(FAVICON_SVG).mtimeMs
+if (iconFresh) {
+  upToDate += 1
+} else if (checkOnly) {
+  stale.push('favicon/favicon.ico')
+} else {
+  const source = readFileSync(FAVICON_SVG, 'utf8')
+  const images = FAVICON_SIZES.map((size) => ({
+    size,
+    png: new Resvg(source, { fitTo: { mode: 'width', value: size } }).render().asPng()
+  }))
+  writeFileSync(FAVICON_ICO, packIco(images))
+  rendered += 1
+  console.log(`[brand] favicon/favicon.svg → favicon.ico  尺寸 ${FAVICON_SIZES.join('/')}  ${(statSync(FAVICON_ICO).size / 1024).toFixed(1)} KB`)
+}
+
 if (checkOnly) {
   if (stale.length) {
     console.error(`[brand] 以下位图缺失或早于矢量源文件，请运行 npm run brand:render：${stale.join('、')}`)
     process.exit(1)
   }
-  console.log(`[brand] 位图都已就绪（${upToDate} 个）`)
+  console.log(`[brand] 素材都已就绪（${upToDate} 个）`)
 } else {
   console.log(`[brand] 完成：新渲染 ${rendered} 个，已最新 ${upToDate} 个（缩放 ${scale}x）`)
 }

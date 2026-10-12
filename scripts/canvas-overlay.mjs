@@ -43,6 +43,10 @@ const MAPPINGS = [
 // 上游 public/ 里的这些文件会被整目录清掉（源文件可随时用 --restore 从 git 还原）。
 const PUBLIC_DIR = join(source, 'apps', 'web', 'public')
 const BRAND_DIRS = ['logo', 'product_showcase']
+// 位于 public 根目录下的单文件素材（应用图标）。
+const BRAND_FILES = [
+  { from: join(root, 'overlay', 'brand', 'favicon', 'favicon.ico'), to: join(source, 'apps', 'web', 'public', 'favicon.ico') }
+]
 
 // ---------------------------------------------------------------- 源码文案补丁 --
 // 上游界面里写着它自己的品牌名与仓库链接（「更多」菜单的 GitHub、引导页标题、
@@ -212,6 +216,7 @@ if (shouldRestore) {
   const targets = [
     ...MAPPINGS.map((mapping) => mapping.to.slice(source.length + 1).replace(/\\/g, '/')),
     ...BRAND_DIRS.map((name) => `apps/web/public/${name}`),
+    ...BRAND_FILES.map((file) => file.to.slice(source.length + 1).replace(/\\/g, '/')),
     ...SOURCE_PATCHES.map((patch) => patch.file)
   ]
   const result = spawnSync('git', ['checkout', '--', ...targets], { cwd: source, stdio: 'inherit', shell: process.platform === 'win32' })
@@ -239,6 +244,13 @@ for (const name of BRAND_DIRS) {
     copyFileSync(join(from, entry.name), join(to, entry.name))
     console.log(`[overlay] public/${name}/${entry.name} ← overlay/brand/${name}/${entry.name}`)
   }
+}
+
+// public 根目录下的单文件素材（应用图标）。上游同名文件会被覆盖。
+for (const { from, to } of BRAND_FILES) {
+  if (!existsSync(from)) fail(`缺少品牌素材文件：${from}（运行 npm run brand:render 生成）`)
+  copyFileSync(from, to)
+  console.log(`[overlay] ${to.slice(source.length + 1).replace(/\\/g, '/')} ← overlay/brand/favicon/${from.split(/[\\/]/).pop()}`)
 }
 
 // 界面文案里的上游品牌名与仓库链接：逐条严格替换（命中数不符即中断）。

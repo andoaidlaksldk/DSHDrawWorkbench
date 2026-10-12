@@ -113,6 +113,27 @@ for (const file of BRAND_FILES) {
 }
 ok(`品牌素材同时提供矢量与位图两套（各 ${BRAND_FILES.length} 个），位图不比矢量源文件旧`)
 
+// 应用图标：必须是自有设计——与 overlay 里的源文件逐字节一致（上游那份 4.2 KB，绝不是这个大小），
+// 并检查 ICO 结构合法、含多个尺寸。
+const faviconPath = join(appRoot, 'favicon.ico')
+const faviconSource = join(root, 'overlay', 'brand', 'favicon', 'favicon.ico')
+assert.ok(existsSync(faviconPath), '缺少 app/favicon.ico')
+assert.deepEqual(
+  readFileSync(faviconPath),
+  readFileSync(faviconSource),
+  'app/favicon.ico 与本仓库自有图标不一致（可能仍是上游素材）'
+)
+const favicon = readFileSync(faviconPath)
+assert.equal(favicon.readUInt16LE(0), 0, 'ICO reserved 字段应为 0')
+assert.equal(favicon.readUInt16LE(2), 1, 'ICO 类型应为 1（icon）')
+const faviconSizes = favicon.readUInt16LE(4)
+assert.ok(faviconSizes >= 5, `ICO 应打包多个尺寸，实际 ${faviconSizes} 个`)
+assert.ok(
+  statSync(faviconPath).mtimeMs >= statSync(faviconSource.replace(/\.ico$/, '.svg')).mtimeMs,
+  'app/favicon.ico 早于图标源文件，请运行 npm run brand:render'
+)
+ok(`应用图标为自有设计（ICO 含 ${faviconSizes} 个尺寸，${(favicon.length / 1024).toFixed(1)} KB）`)
+
 // 路由段的合法字符由 Harness 固定为 `[A-Za-z0-9_$.-]`（见应用内 ENDPOINT_SEGMENT_PATTERN）。
 // 文件名违规会让 register 被判为 invalid exact Fetch route——这是曾经打死 Harness 的原因，
 // 所以这里当成硬约束：`app/` 下不允许出现任何不合规文件名。
