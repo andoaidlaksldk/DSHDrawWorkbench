@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * 把上游 drawnix 的构建产物同步进本包的内嵌应用目录 `app/`。
+ * 把内嵌白板项目（drawnix）的构建产物同步进本包的内嵌应用目录 `app/`。
  *
  * 输入：<repo>/../drawnix/dist/apps/web（由 scripts/canvas-overlay.mjs --build 生成）
  * 输出：<repo>/app/**（静态资源）与 <repo>/app/index.html（宿主页）
  *
  * 做四件事：
  *   1. 拷贝产物，去掉与前端的托管方式无关的部署文件（_headers / _redirects / robots / sitemap）；
- *   2. 生成宿主页：上游入口页里的统计脚本与 SEO 元信息不进内嵌画布，标题用工作台的名字；
+ *   2. 生成宿主页：白板项目入口页里的统计脚本与 SEO 元信息不进内嵌画布，标题用工作台的名字；
  *      （真正的 head 定制在 overlay/index.html，这里是产物层的兜底与校验）
  *   3. 文件名 ASCII 化：Harness 的精确 fetch 路由要求每一段匹配 `[A-Za-z0-9_$.-]`，
  *      非法文件名会让整个插件登记失败，因此改名并同步改写引用；
@@ -37,11 +37,11 @@ function fail(message) {
 }
 
 if (!existsSync(join(sourceDist, 'index.html'))) {
-  fail(`找不到上游构建产物：${sourceDist}\n  请先执行：node scripts/canvas-overlay.mjs --build`)
+  fail(`找不到内嵌白板的构建产物：${sourceDist}\n  请先执行：node scripts/canvas-overlay.mjs --build`)
 }
 
 // --- 1. 拷贝产物 --------------------------------------------------------------
-// 先清空 app/（里面的每个文件都是上游构建产物，没有需要保留的东西）。
+// 先清空 app/（里面的每个文件都是内嵌白板的构建产物，没有需要保留的东西）。
 for (const entry of readdirSync(appRoot, { withFileTypes: true })) {
   rmSync(join(appRoot, entry.name), { recursive: true, force: true })
 }

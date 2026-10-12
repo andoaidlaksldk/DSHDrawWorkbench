@@ -32,7 +32,7 @@ import { fileURLToPath } from 'node:url'
 
 const PACKAGE_NAME = 'dsh-draw-workbench'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const PACKAGE_ENTRIES = ['package.json', 'cordis.patch.yml', 'README.md', 'LICENSE']
+const PACKAGE_ENTRIES = ['package.json', 'cordis.patch.yml', 'README.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md']
 const PACKAGE_DIRS = ['dsh', 'lib', 'app']
 
 const args = process.argv.slice(2)
@@ -222,7 +222,7 @@ const expectedFiles = PACKAGE_DIRS.reduce((total, d) => total + countFiles(join(
 const actualFiles = countFiles(packageDir)
 if (expectedFiles !== actualFiles) fail(`物化后文件数不一致：${actualFiles} ≠ ${expectedFiles}`)
 
-// 画布产物的定制标记：证明装进去的确实是带 overlay 的新构建，而不是上游原版。
+// 画布产物的定制标记：证明装进去的确实是带 overlay 的新构建，而不是白板项目原版。
 const BUNDLE_MARKERS = [
   '/api/dsh-draw-workbench', // overlay 的应用外壳把数据读写接到了本插件
   '/session/data' // 自动保存端点（overlay 里以拼接形式出现，产物中为字面量）

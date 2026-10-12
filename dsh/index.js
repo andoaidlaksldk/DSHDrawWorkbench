@@ -104,7 +104,7 @@ function cacheControlFor(file) {
  * 进而 `dsh: fatal load failure` 打死整个 Harness（不是只让本插件失效）。
  * 因此登记前必须同步筛一遍：只登记合规路径，其余记录后跳过，绝不抛错。
  *
- * 白板的构建产物（上游 Vite 输出）带内容哈希，但仍是纯 ASCII；`scripts/sync-app.mjs`
+ * 白板的构建产物（Vite 输出）带内容哈希，但仍是纯 ASCII；`scripts/sync-app.mjs`
  * 还会在拷贝时把任何含非 ASCII 的文件名归一化，双重保险。
  */
 const ROUTE_SEGMENT_PATTERN = /^[A-Za-z0-9_$.-]+$/
@@ -224,7 +224,7 @@ function normalizeDocumentId(value) {
  *   - 导出 / 打开文件时用 `elements`（`.drawnix` 文件，也是本工作台落盘的格式）
  *   - 画布内存状态与 IndexedDB 里用 `children`
  * 两者都接受，落盘统一成 `.drawnix` 形态；`viewport` 缺失时补 `{ zoom: 1 }`
- * （上游校验只要求它是对象，打开时还会自己 fit 一次视口）。
+ * （白板项目校验只要求它是对象，打开时还会自己 fit 一次视口）。
  */
 export function normalizeBoardData(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new WorkbenchError('画板数据必须是对象。')

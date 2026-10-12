@@ -79,6 +79,15 @@ assert.ok(patch.includes(`name: ${PACKAGE_NAME}`), 'cordis.patch.yml 必须按�
 assert.ok(patch.includes("dshHomePath('draw-workbench')"), 'cordis.patch.yml 必须声明数据目录 draw-workbench')
 ok('cordis.patch.yml 按包名插入并声明数据目录')
 
+// 本项目是白板项目的二次开发：文档里如实声明来源即可，行文统一用「白板项目 / 白板源码」，
+// 不使用「上游 / 下游」这类相对措辞。
+for (const doc of ['README.md', 'THIRD-PARTY-NOTICES.md']) {
+  const text = readFileSync(join(root, doc), 'utf8')
+  assert.equal(/上游|下游/.test(text), false, `${doc} 里出现了「上游 / 下游」措辞`)
+  assert.ok(text.includes('二次开发'), `${doc} 里应说明本项目是二次开发`)
+}
+ok('README 与第三方声明措辞统一，且如实声明了二次开发')
+
 assert.ok(existsSync(join(appRoot, 'index.html')), '缺少 app/index.html')
 const appAssets = walk(appRoot).filter((file) => file.startsWith('assets/') && file.endsWith('.js'))
 assert.ok(appAssets.length > 0, 'app/assets 下没有构建产物')
@@ -86,8 +95,8 @@ const appFiles = walk(appRoot)
 assert.ok(appFiles.length > 40, `app/ 文件数异常：${appFiles.length}`)
 ok(`app/ 已落地 ${appFiles.length} 个文件（含 ${appAssets.length} 个构建脚本）`)
 
-// 品牌素材必须是我们自己的设计，且 app/ 下不允许出现以上游品牌命名的文件
-// （上游 public/logo、public/product_showcase 里的素材由 canvas-overlay.mjs 整体替换）。
+// 品牌素材必须是我们自己的设计，且 app/ 下不允许出现以白板原品牌命名的文件
+// （白板项目 public/logo、public/product_showcase 里的素材由 canvas-overlay.mjs 整体替换）。
 const BRAND_FILES = [
   'logo/logo_h.svg',
   'logo/logo_h_dark.svg',
@@ -98,8 +107,8 @@ for (const file of BRAND_FILES) {
   assert.ok(appFiles.includes(file), `缺少品牌素材 app/${file}`)
 }
 const brandLeaks = appFiles.filter((file) => /drawnix|plait/i.test(file))
-assert.deepEqual(brandLeaks, [], `app/ 下仍有以上游品牌命名的文件：${brandLeaks.join('、')}`)
-ok(`品牌素材已换成自有设计（${BRAND_FILES.length} 个文件），且无上游品牌命名文件`)
+assert.deepEqual(brandLeaks, [], `app/ 下仍有以白板原品牌命名的文件：${brandLeaks.join('、')}`)
+ok(`品牌素材已换成自有设计（${BRAND_FILES.length} 个文件），且无白板原品牌命名文件`)
 
 // 位图版素材：既要存在，也不能比矢量源文件旧（否则等于交付了过期设计）。
 for (const file of BRAND_FILES) {
@@ -113,7 +122,7 @@ for (const file of BRAND_FILES) {
 }
 ok(`品牌素材同时提供矢量与位图两套（各 ${BRAND_FILES.length} 个），位图不比矢量源文件旧`)
 
-// 应用图标：必须是自有设计——与 overlay 里的源文件逐字节一致（上游那份 4.2 KB，绝不是这个大小），
+// 应用图标：必须是自有设计——与 overlay 里的源文件逐字节一致（白板项目那份 4.2 KB，绝不是这个大小），
 // 并检查 ICO 结构合法、含多个尺寸。
 const faviconPath = join(appRoot, 'favicon.ico')
 const faviconSource = join(root, 'overlay', 'brand', 'favicon', 'favicon.ico')
@@ -121,7 +130,7 @@ assert.ok(existsSync(faviconPath), '缺少 app/favicon.ico')
 assert.deepEqual(
   readFileSync(faviconPath),
   readFileSync(faviconSource),
-  'app/favicon.ico 与本仓库自有图标不一致（可能仍是上游素材）'
+  'app/favicon.ico 与本仓库自有图标不一致（可能仍是白板原素材）'
 )
 const favicon = readFileSync(faviconPath)
 assert.equal(favicon.readUInt16LE(0), 0, 'ICO reserved 字段应为 0')
@@ -164,14 +173,14 @@ assert.equal(overlayBundles.length, 1, `应有且仅有一个产物含画布 ove
 assert.equal(bundleTexts.some((text) => text.includes('cloud.umami.is')), false, '画布产物里仍然引用了统计域名')
 ok('画布 overlay（服务端接口读写）已编进产物，且不含统计域名')
 
-// 界面文案里的上游品牌/链接必须已由 scripts/canvas-overlay.mjs 的补丁表清掉
+// 界面文案里的白板原品牌/链接必须已由 scripts/canvas-overlay.mjs 的补丁表清掉
 // （只允许保留标识符：组件名、枚举键、MIME 常量、CSS 类名）。
 const allBundles = bundleTexts.join('\n')
 assert.ok(allBundles.includes('github.com/andoaidlaksldk/DSHDrawWorkbench'), '「更多」菜单的 GitHub 链接没有改成本仓库')
-assert.equal(allBundles.includes('plait-board/drawnix'), false, '画布产物里仍指向上游仓库')
-assert.equal(allBundles.includes('Drawnix file'), false, '打开/保存文件对话框的描述仍是上游品牌名')
-assert.equal(allBundles.includes('DPIT'), false, '语言包里残留了上游分支的品牌名')
-ok('界面里的上游品牌名与仓库链接已清除（菜单 GitHub 指向本仓库）')
+assert.equal(allBundles.includes('plait-board/drawnix'), false, '画布产物里仍指向白板源码仓库')
+assert.equal(allBundles.includes('Drawnix file'), false, '打开/保存文件对话框的描述仍是白板原品牌名')
+assert.equal(allBundles.includes('DPIT'), false, '语言包里残留了白板项目分支的品牌名')
+ok('界面里的白板原品牌名与仓库链接已清除（菜单 GitHub 指向本仓库）')
 
 // ------------------------------------------------------------------ 2. 服务端 --
 

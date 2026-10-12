@@ -1,6 +1,6 @@
 {
   "name": "dsh-draw-workbench",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "displayName": "DSHDrawWorkbench",
   "description": "DSH 画板工作台：在工作台里画流程图、架构图、思维导图与手绘草图，文档保存在 DSH 数据目录。",
   "type": "module",
@@ -17,7 +17,8 @@
     "cordis.patch.yml",
     "app",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "THIRD-PARTY-NOTICES.md"
   ],
   "license": "MIT",
   "author": "DSH Draw Workbench",

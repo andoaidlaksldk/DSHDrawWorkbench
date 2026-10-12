@@ -1,11 +1,11 @@
 /**
  * DSH 画板工作台 · 内嵌白板的应用外壳（overlay）。
  *
- * 本文件由 `scripts/canvas-overlay.mjs` 覆盖到上游 `apps/web/src/app/app.tsx`，
+ * 本文件由 `scripts/canvas-overlay.mjs` 覆盖到白板项目 `apps/web/src/app/app.tsx`，
  * 是**唯一**被改写的业务文件，改的只有数据来源，白板本身（组件、工具、渲染）
  * 一行未动。
  *
- * 与上游版本的差别：
+ * 与白板项目版本的差别：
  *   1. 数据不再存在浏览器 IndexedDB（localforage），而是走本工作台自己的
  *      服务端接口 `/api/dsh-draw-workbench/...`，落进 DSH 数据目录；
  *   2. 支持「多文档」：面板通过 postMessage 下发要打开的画板；
@@ -68,7 +68,7 @@ export function App() {
   const [preference, setPreference] = useState<Preference>({ language: 'zh' });
   const [initialToolState, setInitialToolState] = useState<Partial<DrawnixToolState>>();
   const [tutorial, setTutorial] = useState(false);
-  // 切换画板时靠改 key 强制重挂白板：上游只把 value 当初始值用，
+  // 切换画板时靠改 key 强制重挂白板：白板项目只把 value 当初始值用，
   // 单纯 setState 不会让画布换成另一份数据。
   const [boardKey, setBoardKey] = useState(0);
   const [loaded, setLoaded] = useState(false);

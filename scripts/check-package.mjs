@@ -121,7 +121,9 @@ const REQUIRED = [
   'lib/client.js',
   'app/index.html',
   'README.md',
-  'LICENSE'
+  'LICENSE',
+  // 二次开发必须随包分发第三方声明（内嵌白板按 MIT 发布，需保留其版权声明）。
+  'THIRD-PARTY-NOTICES.md'
 ]
 const missing = REQUIRED.filter((path) => !relative.includes(path))
 if (missing.length) fail(`缺少必需文件：${missing.join('、')}`)
@@ -145,7 +147,7 @@ else ok('未发现 .env / 密钥 / 证书 / 数据库 / 备份等可疑文件')
 
 // ------------------------------------------- 5. 本机绝对路径与敏感串 --
 
-// 内嵌白板的产物是上游压缩代码（`app/assets/` 下）：压缩后的正则字面量里带反斜杠转义
+// 内嵌白板的产物是压缩后的白板代码（`app/assets/` 下）：压缩后的正则字面量里带反斜杠转义
 // （例如 mermaid 的 `/^(?:activate\\b)/i`），会被「盘符路径」模式误判。所以这一目录只告警、
 // 不失败；本工作台自己的源码（dsh/、lib/、scripts/、overlay/）一旦出现本机路径就是硬失败。
 const EMBEDDED_BUILD_PREFIX = 'app/assets/'
@@ -165,7 +167,7 @@ for (const entry of archive) {
 }
 if (offenders.length) fail(`包内含本机绝对路径：${offenders.join('、')}`)
 else ok('包内未出现本机绝对路径（本工作台自有代码）')
-if (warnings.length) console.log(`  ! ${EMBEDDED_BUILD_PREFIX} 下的上游压缩产物命中疑似路径模式（多为正则转义误报），建议人工确认：${warnings.join('、')}`)
+if (warnings.length) console.log(`  ! ${EMBEDDED_BUILD_PREFIX} 下的压缩产物命中疑似路径模式（多为正则转义误报），建议人工确认：${warnings.join('、')}`)
 
 if (process.exitCode) {
   console.error(`\n[check-package] 未通过（${checks} 项通过，见上方 ✗）`)

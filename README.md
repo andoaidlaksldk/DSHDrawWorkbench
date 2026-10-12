@@ -22,7 +22,7 @@
 | Agent 工具 | `board_list` / `board_read` / `board_write` 三个工具进会话能力清单，用对话框就能让 Agent 画图 |
 | 外部写入提示 | 画布之外的写入（例如 Agent 调 `board_write`）会在几秒内被发现并提示「重新载入」 |
 | AI 协助停靠 | 画板本身不需要会话；需要 Agent 参与时点右上角「AI 协助」，会话区停靠在右侧 |
-| 离线可用 | 不联网、不上报；上游的统计脚本在构建期已被移除 |
+| 离线可用 | 不联网、不上报；白板自带的统计脚本在构建期已被移除 |
 
 ## 安装
 
@@ -86,11 +86,11 @@ HTTP 接口（同源，前缀 `/api/dsh-draw-workbench`）：
 ```
 dsh/index.js             服务端：静态托管 + 文档库 + Agent 工具（画板 ⇄ 元素 ⇄ 文本）
 lib/client.js            面板：工具栏 + 画布 iframe + 多文档 + 外部写入提示 + 会话停靠
-overlay/app.tsx          画布定制（唯一被改写的上游业务文件）：数据改走本插件接口
+overlay/app.tsx          画布定制（唯一被改写的白板业务文件）：数据改走本插件接口
 overlay/vite.config.ts   构建配置：相对 base（子路径托管必需）
 overlay/index.html       宿主页：去掉统计脚本与绝对 base
 app/                     内嵌白板的构建产物（由脚本生成，勿手改）
-scripts/canvas-overlay.mjs  把 overlay 施加到上游源码并构建（--restore 可还原）
+scripts/canvas-overlay.mjs  把 overlay 施加到白板源码并构建（--restore 可还原）
 scripts/sync-app.mjs        产物 → app/：宿主页净化、文件名 ASCII 化、ESM 语法闸门
 scripts/verify.mjs          确定性自检（包/服务端/数据模型/工具/客户端一致性）
 scripts/smoke.mjs           HTTP 冒烟（真实网络 + 落盘校验）
@@ -101,19 +101,27 @@ scripts/install-to-desktop.mjs  按 7 处记录装进 DSH Desktop
 ### 重建内嵌画布
 
 ```powershell
-node scripts/canvas-overlay.mjs --build   # 施加 overlay 并构建上游（需先 npm ci drawnix）
+node scripts/canvas-overlay.mjs --build   # 施加 overlay 并构建白板（需先 npm ci drawnix）
 node scripts/sync-app.mjs                 # 同步进 app/，过语法闸门
 node scripts/verify.mjs && node scripts/smoke.mjs
 ```
 
-`canvas-overlay.mjs --restore` 用 git 还原上游源码；除 `apps/web` 的三个文件外不碰上游任何文件。
+`canvas-overlay.mjs --restore` 用 git 还原白板源码；除 `apps/web` 的三个文件与品牌素材外不碰白板任何文件。
 
-## 已知限制（如实说明）
+## 来源与声明
 
-- **上游品牌未清理**：内嵌白板的界面仍显示 Drawnix 名称与图标（有意保留，见 `THIRD-PARTY-NOTICES.md`）；
-  本工作台在 DSH 里的名称、描述与文档一律自称「DSH 画板」。
-- **连线不绑定图形**：Agent 写出的连线是绝对坐标直箭头，拖动图形时线不会跟着走。
-- **导出依赖浏览器下载**：导出走 `<a download>`；若桌面壳拦截下载，请用「立即保存」把内容落盘后再从数据目录取文件。
+本项目是**二次开发**：内嵌的白板应用与其绘图内核来自开源项目
+[Drawnix](https://github.com/plait-board/drawnix)（MIT 许可），`.drawnix` 数据格式与
+绘图能力完整保留。本工作台在其之上补齐了工作台宿主、多画板文档、DSH 数据目录存储与 Agent 工具。
+
+界面品牌元素（「更多」菜单链接、引导页、打开 / 保存对话框描述、导出文件名、logo、产品展示图、
+应用图标）都已替换成本项目自己的设计；Drawnix 的名称与出处仅在本节与第三方许可文件中如实标注。
+第三方许可清单见 [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)。
+
+## 使用上的限制
+
+- **连线不绑定图形**：Agent 写出的连线是绝对坐标直箭头，拖动图形时线不会跟着走（手工画的线不受影响）。
+- **导出依赖浏览器下载**：导出走 `<a download>`；若桌面壳拦截下载，请先用「立即保存」把内容落盘，再从数据目录取文件。
 - **单用户单标签页**：没有做多端并发编辑合并；检测到外部写入时只提示重载，不自动合并。
 
 ## 许可
