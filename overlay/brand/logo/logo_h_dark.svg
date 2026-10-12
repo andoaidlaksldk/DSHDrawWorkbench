@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="56" viewBox="0 0 240 56" role="img" aria-label="DSH 画板">
+  <title>DSH 画板</title>
+  <!-- DSH 画板工作台 · 横向标识（深色版）。矢量源文件在本包 overlay/brand/logo/ 下。 -->
+  <defs>
+    <linearGradient id="dshMarkDark" x1="4" y1="8" x2="44" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4E8DFF"/>
+      <stop offset="1" stop-color="#1FC7B4"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="4" y="8" width="40" height="40" rx="12" fill="url(#dshMarkDark)"/>
+  <rect x="13" y="17" width="22" height="22" rx="5.5" fill="none" stroke="#0B0C0E" stroke-width="2.6" opacity=".55"/>
+  <path d="M18.6 31.6 25 25.2" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+  <circle cx="28.6" cy="23.8" r="2.4" fill="#FFFFFF"/>
+
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif">
+    <text x="58" y="31" font-size="21" font-weight="700" letter-spacing=".5" fill="#F7F8FA">DSH 画板</text>
+    <text x="59" y="47" font-size="10.5" font-weight="600" letter-spacing="1.6" fill="#A9ADB4">DRAW WORKBENCH</text>
+  </g>
+</svg>

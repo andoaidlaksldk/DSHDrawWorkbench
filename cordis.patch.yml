@@ -1,0 +1,7 @@
+# DSH 画板工作台：把服务端入口插入 Harness 插件树。
+# root 指向 DSH 数据目录下的 draw-workbench，用于保存画板文档与偏好设置。
+- insert:
+    - id: dsh-draw-workbench
+      name: dsh-draw-workbench
+      config:
+        root: !!js dshHomePath('draw-workbench')

@@ -1,0 +1,70 @@
+{
+  "name": "dsh-draw-workbench",
+  "version": "1.0.2",
+  "displayName": "DSHDrawWorkbench",
+  "description": "DSH 画板工作台：在工作台里画流程图、架构图、思维导图与手绘草图，文档保存在 DSH 数据目录。",
+  "type": "module",
+  "main": "./dsh/index.js",
+  "exports": {
+    ".": "./dsh/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "files": [
+    "dsh/index.js",
+    "lib/client.js",
+    "cordis.patch.yml",
+    "app",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "author": "DSH Draw Workbench",
+  "keywords": [
+    "dsh-plugin",
+    "workbench",
+    "whiteboard",
+    "drawing",
+    "画板",
+    "白板"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andoaidlaksldk/DSHDrawWorkbench.git"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "dsh-desktop-workbenches",
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    }
+  },
+  "scripts": {
+    "brand:render": "node scripts/render-brand.mjs",
+    "brand:check": "node scripts/render-brand.mjs --check",
+    "canvas:overlay": "node scripts/canvas-overlay.mjs",
+    "canvas:build": "node scripts/canvas-overlay.mjs --build",
+    "app:sync": "node scripts/sync-app.mjs",
+    "verify": "node scripts/verify.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "pack:check": "node scripts/verify.mjs && node scripts/smoke.mjs && node scripts/check-package.mjs",
+    "install:desktop": "node scripts/install-to-desktop.mjs"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "^3.18.2"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/dsh-client-connection": ">=0.2.0-rc.1 <0.3.0-0",
+    "@deepseek-ai/dsh-client-locale": ">=0.2.0-rc.1 <0.3.0-0"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  }
+}

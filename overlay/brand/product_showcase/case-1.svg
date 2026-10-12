@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" role="img" aria-label="DSH 画板：流程图">
+  <title>DSH 画板 · 流程图</title>
+  <!--
+    DSH 画板工作台 · 产品展示图（流程图）。
+    矢量源文件在本包 overlay/brand/product_showcase/ 下，位图由 scripts/render-brand.mjs 渲染。
+    版式约束：画布可视区是 x 88..932，所有图形必须落在其中，否则会被右侧属性面板遮住。
+  -->
+  <defs>
+    <linearGradient id="c1Mark" x1="0" y1="0" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3B7DFF"/>
+      <stop offset="1" stop-color="#12B5A5"/>
+    </linearGradient>
+    <pattern id="c1Grid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#D9DDE4"/>
+    </pattern>
+    <marker id="c1Arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 1.5 9 5 0 8.5z" fill="#7A8190"/>
+    </marker>
+    <filter id="c1Shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#111827" flood-opacity=".14"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="750" fill="#EEF1F6"/>
+  <g filter="url(#c1Shadow)">
+    <rect x="20" y="20" width="1160" height="710" rx="14" fill="#FFFFFF"/>
+  </g>
+
+  <!-- 顶栏 -->
+  <rect x="20" y="20" width="1160" height="52" rx="14" fill="#FFFFFF"/>
+  <rect x="20" y="58" width="1160" height="14" fill="#FFFFFF"/>
+  <line x1="20" y1="71.5" x2="1180" y2="71.5" stroke="#E5E6EB"/>
+  <rect x="44" y="33" width="26" height="26" rx="8" fill="url(#c1Mark)"/>
+  <rect x="50.5" y="39.5" width="13" height="13" rx="3.5" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity=".95"/>
+  <path d="M53.8 48.4 57 45.2" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/>
+  <text x="80" y="51" font-size="15.5" font-weight="700" fill="#1F2329" font-family="-apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif">DSH 画板</text>
+  <text x="151" y="51" font-size="12.5" fill="#8A9099" font-family="-apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif">上线流程</text>
+  <g font-family="-apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif" font-size="12.5" fill="#1F2329">
+    <rect x="836" y="33" width="72" height="26" rx="13" fill="#FFFFFF" stroke="#E1E3E8"/>
+    <text x="872" y="50" text-anchor="middle">导入</text>
+    <rect x="916" y="33" width="72" height="26" rx="13" fill="#FFFFFF" stroke="#E1E3E8"/>
+    <text x="952" y="50" text-anchor="middle">导出</text>
+    <rect x="996" y="33" width="88" height="26" rx="13" fill="#2E6BE6"/>
+    <text x="1040" y="50" text-anchor="middle" fill="#FFFFFF">立即保存</text>
+  </g>
+
+  <!-- 左侧工具条：6 个等间距工具位（图标盒 40×40，标签在盒下 12px 处） -->
+  <g>
+    <rect x="20" y="72" width="68" height="658" fill="#FCFCFD"/>
+    <line x1="87.5" y1="72" x2="87.5" y2="730" stroke="#E9EBEF"/>
+
+    <rect x="34" y="120" width="40" height="40" rx="10" fill="#E8F0FF" stroke="#3B7DFF"/>
+    <rect x="43" y="129" width="22" height="22" rx="5" fill="none" stroke="#2E6BE6" stroke-width="2"/>
+
+    <rect x="34" y="184" width="40" height="40" rx="10" fill="#FFFFFF" stroke="#E9EBEF"/>
+    <circle cx="54" cy="204" r="9" fill="none" stroke="#8A9099" stroke-width="2"/>
+
+    <rect x="34" y="248" width="40" height="40" rx="10" fill="#FFFFFF" stroke="#E9EBEF"/>
+    <path d="M44 276l14-14M58 262v6M58 262h-6" fill="none" stroke="#8A9099" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="34" y="312" width="40" height="40" rx="10" fill="#FFFFFF" stroke="#E9EBEF"/>
+    <path d="M45 332h18M54 332v14" fill="none" stroke="#8A9099" stroke-width="2" stroke-linecap="round"/>
+
+    <rect x="34" y="376" width="40" height="40" rx="10" fill="#FFFFFF" stroke="#E9EBEF"/>
+    <g fill="none" stroke="#8A9099" stroke-width="2" stroke-linecap="round">
+      <circle cx="45" cy="396" r="3" fill="#8A9099"/>
+      <path d="M49 396h6l6-7M55 396l6 7"/>
+      <circle cx="67" cy="386" r="2.4" fill="#8A9099"/>
+      <circle cx="67" cy="406" r="2.4" fill="#8A9099"/>
+    </g>
+
+    <rect x="34" y="440" width="40" height="40" rx="10" fill="#FFFFFF" stroke="#E9EBEF"/>
+    <path d="M42 470c7-14 19-4 24-12" fill="none" stroke="#8A9099" stroke-width="2" stroke-linecap="round"/>
+
+    <g fill="#8A9099" font-family="-apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif" font-size="11" text-anchor="middle">
+      <text x="54" y="172">矩形</text>
+      <text x="54" y="236">椭圆</text>
+      <text x="54" y="300">箭头</text>
+      <text x="54" y="364">文字</text>
+      <text x="54" y="428">导图</text>
+      <text x="54" y="492">手绘</text>
+    </g>
+  </g>
+
+  <!-- 画布 -->
+  <rect x="88" y="72" width="844" height="658" fill="url(#c1Grid)"/>
+
+  <g font-family="-apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif">
+    <text x="130" y="112" font-size="19" font-weight="700" fill="#1F2329">上线流程</text>
+    <text x="130" y="134" font-size="12.5" fill="#8A9099">拖拽连线两端可重新挂接；双击空白处写文字</text>
+
+    <!-- 连线：主干为竖向链条，测试验收从主干分叉 -->
+    <g stroke="#7A8190" stroke-width="1.8" fill="none" marker-end="url(#c1Arrow)">
+      <path d="M330 212v48"/>
+      <path d="M330 324v48"/>
+      <path d="M330 436v48"/>
+      <path d="M330 460h186v48"/>
+    </g>
+    <text x="342" y="240" font-size="11.5" fill="#7A8190">通过</text>
+    <text x="342" y="352" font-size="11.5" fill="#7A8190">通过</text>
+    <text x="342" y="486" font-size="11.5" fill="#7A8190">打回</text>
+    <text x="368" y="452" font-size="11.5" fill="#7A8190">通过</text>
+
+    <!-- 节点（全部落在 88..932 的可视区内） -->
+    <rect x="240" y="156" width="180" height="56" rx="10" fill="#FFFFFF" stroke="#C9CED8"/>
+    <text x="330" y="189" font-size="14" text-anchor="middle" fill="#1F2329">需求评审</text>
+    <rect x="240" y="268" width="180" height="56" rx="10" fill="#FFFFFF" stroke="#C9CED8"/>
+    <text x="330" y="301" font-size="14" text-anchor="middle" fill="#1F2329">方案设计</text>
+    <rect x="240" y="380" width="180" height="56" rx="10" fill="#FFFFFF" stroke="#C9CED8"/>
+    <text x="330" y="413" font-size="14" text-anchor="middle" fill="#1F2329">开发实现</text>
+    <rect x="240" y="492" width="180" height="56" rx="10" fill="#FFFFFF" stroke="#C9CED8"/>
+    <text x="330" y="525" font-size="14" text-anchor="middle" fill="#1F2329">修复缺陷</text>
+    <rect x="516" y="512" width="180" height="56" rx="10" fill="#E8F0FF" stroke="#2E6BE6"/>
+    <text x="606" y="545" font-size="14" text-anchor="middle" fill="#1B3FA8">测试验收</text>
+  </g>
+
+  <!-- 右侧属性面板 -->
+  <g font-family="-apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif">
+    <rect x="932" y="72" width="248" height="658" fill="#FAFBFC"/>
+    <line x1="932.5" y1="72" x2="932.5" y2="730" stroke="#E9EBEF"/>
+    <text x="956" y="104" font-size="13.5" font-weight="600" fill="#1F2329">属性</text>
+    <text x="956" y="136" font-size="12" fill="#8A9099">填充</text>
+    <rect x="1032" y="123" width="22" height="22" rx="6" fill="#FFFFFF" stroke="#2E6BE6" stroke-width="2"/>
+    <rect x="1062" y="123" width="22" height="22" rx="6" fill="#E8F0FF"/>
+    <rect x="1092" y="123" width="22" height="22" rx="6" fill="#DFF5F1"/>
+    <rect x="1122" y="123" width="22" height="22" rx="6" fill="#FFF1D9"/>
+    <text x="956" y="182" font-size="12" fill="#8A9099">边框</text>
+    <rect x="1032" y="169" width="112" height="22" rx="6" fill="#FFFFFF" stroke="#E1E3E8"/>
+    <path d="M1044 180h24" stroke="#1F2329" stroke-width="2" stroke-linecap="round"/>
+    <text x="956" y="228" font-size="12" fill="#8A9099">层级</text>
+    <g fill="#1F2329" font-size="12" text-anchor="middle">
+      <rect x="1032" y="215" width="52" height="24" rx="8" fill="#FFFFFF" stroke="#E1E3E8"/>
+      <text x="1058" y="231">置顶</text>
+      <rect x="1092" y="215" width="52" height="24" rx="8" fill="#FFFFFF" stroke="#E1E3E8"/>
+      <text x="1118" y="231">置底</text>
+    </g>
+    <line x1="956" y1="272" x2="1156" y2="272" stroke="#EFF1F4"/>
+    <text x="956" y="304" font-size="13.5" font-weight="600" fill="#1F2329">本页</text>
+    <text x="956" y="332" font-size="12" fill="#8A9099">元素 5 个 · 连线 4 条</text>
+    <text x="956" y="356" font-size="12" fill="#8A9099">保存在 DSH 数据目录</text>
+  </g>
+
+  <!-- 底部状态 -->
+  <g font-family="-apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif">
+    <rect x="866" y="682" width="46" height="26" rx="13" fill="#FFFFFF" stroke="#E1E3E8"/>
+    <text x="889" y="699" font-size="12" text-anchor="middle" fill="#1F2329">100%</text>
+    <text x="108" y="700" font-size="12" fill="#8A9099">已保存 · 12:04:31</text>
+  </g>
+</svg>

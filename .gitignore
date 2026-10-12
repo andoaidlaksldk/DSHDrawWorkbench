@@ -1,0 +1,12 @@
+# 分发包（构建产物，不入库；需要时用 pnpm pack 生成）
+*.tgz
+*.tgz.sha256
+
+# 依赖
+node_modules/
+
+# 编辑器与系统文件
+.DS_Store
+Thumbs.db
+*.bak
+*.bak-*

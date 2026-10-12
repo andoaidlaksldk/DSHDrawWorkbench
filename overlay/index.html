@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  DSH 画板工作台 · 内嵌白板的宿主页（overlay）。
+  由 scripts/canvas-overlay.mjs 覆盖到上游 apps/web/index.html。
+
+  与上游的差别只有三处，都是为了「嵌进工作台的子路径 + 离线可用」：
+    1. 去掉 <base href="/">：宿主页在 /api/dsh-draw-workbench/app/ 下，
+       绝对根的 base 会让 assets/ 解析到站点根目录，整页 404；
+    2. 去掉第三方统计脚本（cloud.umami.is）与全部 SEO/OG 元信息：
+       内嵌画布不对外发布，也不应该联网上报；
+    3. 标题改成工作台自己的名字。
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>DSH 画板</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" />
+    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+    <link rel="stylesheet" href="/src/styles.scss" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
