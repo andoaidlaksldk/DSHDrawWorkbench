@@ -185,8 +185,47 @@ async function readJson(file) {
 async function writeJsonAtomic(file, value) {
   await mkdir(dirname(file), { recursive: true })
   const temporary = `${file}.tmp-${process.pid}-${Date.now()}`
-  await writeFile(temporary, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
-  await rename(temporary, file)
+  try {
+    await writeFile(temporary, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
+    await rename(temporary, file)
+  } catch (error) {
+    // 写失败时不要把半截临时文件留在用户数据目录里。
+    await unlink(temporary).catch(() => {})
+    throw error
+  }
+}
+
+/**
+ * 清理「上次进程被直接关掉」留下的临时文件。
+ *
+ * `writeJsonAtomic` 是「写临时文件 → 重命名」；正常路径下临时文件会被重命名掉，但
+ * DSH Desktop 被强制关闭或断电时，写到一半的 `*.tmp-<pid>-<时间>` 会留在数据目录里
+ * （同类工作台的数据目录里实测见到过 5 个残留）。启动时清掉**超过 10 分钟**的残留：
+ * 既不会误删正在进行的写入，也不会让数据目录越积越多。
+ */
+const TEMPORARY_MAX_AGE = 10 * 60 * 1000
+
+export async function sweepTemporaries(root) {
+  for (const directory of [root, join(root, DOCUMENTS_DIR)]) {
+    let entries = []
+    try {
+      entries = await readdir(directory, { withFileTypes: true })
+    } catch {
+      continue // 目录还不存在（首次启动）
+    }
+    for (const entry of entries) {
+      if (!entry.isFile() || !/\.tmp-\d+-\d+$/.test(entry.name)) continue
+      const file = join(directory, entry.name)
+      try {
+        const info = await stat(file)
+        if (Date.now() - info.mtimeMs < TEMPORARY_MAX_AGE) continue
+        await unlink(file)
+        console.log(`[dsh-draw-workbench] 已清理残留临时文件：${entry.name}`)
+      } catch {
+        // 清不掉（被占用等）不影响启动，下次再清。
+      }
+    }
+  }
 }
 
 function documentFile(root, id) {
@@ -431,6 +470,9 @@ function elementKind(element) {
     if (element?.shape === 'text') return '文本'
     if (element?.shape === 'ellipse') return '椭圆'
     if (element?.shape === 'diamond') return '菱形'
+    if (element?.shape === 'terminal') return '开始/结束'
+    if (element?.shape === 'parallelogram') return '平行四边形'
+    if (element?.shape === 'triangle') return '三角形'
     return '矩形'
   }
   if (type === 'arrow-line' || type === 'vector-line') return '连线'
@@ -503,12 +545,35 @@ const SHAPE_ALIASES = new Map(Object.entries({
   rhombus: 'diamond',
   parallelogram: 'parallelogram',
   triangle: 'triangle',
+  // 白板的「开始/结束」形状（流程图里最常用的一种），常见叫法都收进来。
+  terminal: 'terminal',
+  pill: 'terminal',
+  stadium: 'terminal',
+  startend: 'terminal',
+  '开始/结束': 'terminal',
+  '开始结束': 'terminal',
   text: 'text'
 }))
+
+/** 供工具描述与报错提示共用的形状清单（与 SHAPE_ALIASES 的取值保持一致）。 */
+const SHAPE_HINTS = 'rectangle, roundRectangle, ellipse, diamond, parallelogram, triangle, terminal, text'
 
 function normalizeShape(value, fallback = 'roundRectangle') {
   if (typeof value !== 'string') return fallback
   return SHAPE_ALIASES.get(value.trim().toLowerCase()) || fallback
+}
+
+/**
+ * 颜色：白板把样式存在元素上（`fill` / `strokeColor` / `strokeWidth`），
+ * 字体颜色存在文本叶子上（`children[0].color`）。
+ * 只接受 `#rgb` / `#rrggbb` / `#rrggbbaa`，避免把任意字符串写进用户数据里。
+ */
+const COLOR_PATTERN = /^#[0-9a-fA-F]{3,8}$/
+
+function normalizeColor(value) {
+  if (typeof value !== 'string') return null
+  const color = value.trim()
+  return COLOR_PATTERN.test(color) ? color : null
 }
 
 function toNumber(value, fallback) {
@@ -551,7 +616,11 @@ export function boardSpecToElements(spec) {
       width: toNumber(node.width, NODE_WIDTH),
       height: toNumber(node.height, NODE_HEIGHT),
       x: node.x === undefined || node.x === null ? null : toNumber(node.x, 0),
-      y: node.y === undefined || node.y === null ? null : toNumber(node.y, 0)
+      y: node.y === undefined || node.y === null ? null : toNumber(node.y, 0),
+      fill: normalizeColor(node.fill),
+      strokeColor: normalizeColor(node.strokeColor),
+      strokeWidth: node.strokeWidth === undefined || node.strokeWidth === null ? null : toNumber(node.strokeWidth, null),
+      fontColor: normalizeColor(node.fontColor)
     }
   })
 
@@ -604,12 +673,14 @@ export function boardSpecToElements(spec) {
 
   const elements = []
   if (typeof spec.title === 'string' && spec.title.trim()) {
+    const title = spec.title.trim()
+    const titleColor = normalizeColor(spec.titleColor)
     elements.push({
       id: 'title',
       type: 'geometry',
       shape: 'text',
-      points: [[0, -160], [Math.max(NODE_WIDTH, spec.title.length * 22), -100]],
-      text: { type: 'paragraph', children: [{ text: spec.title.trim() }] }
+      points: [[0, -160], [Math.max(NODE_WIDTH, title.length * 22), -100]],
+      text: { type: 'paragraph', children: [titleColor ? { text: title, color: titleColor } : { text: title }] }
     })
   }
 
@@ -620,8 +691,13 @@ export function boardSpecToElements(spec) {
       shape: node.shape,
       points: [[node.x, node.y], [node.x + node.width, node.y + node.height]]
     }
-    if (node.text) element.text = { type: 'paragraph', children: [{ text: node.text }] }
-    else if (node.shape === 'text') element.text = { type: 'paragraph', children: [{ text: ' ' }] }
+    if (node.fill) element.fill = node.fill
+    if (node.strokeColor) element.strokeColor = node.strokeColor
+    if (node.strokeWidth) element.strokeWidth = node.strokeWidth
+    if (node.text || node.shape === 'text') {
+      const leaf = node.fontColor ? { text: node.text || ' ', color: node.fontColor } : { text: node.text || ' ' }
+      element.text = { type: 'paragraph', children: [leaf] }
+    }
     if (node.shape === 'text') element.autoSize = true
     elements.push(element)
   }
@@ -629,8 +705,24 @@ export function boardSpecToElements(spec) {
   for (const edge of edges) {
     const source = byId.get(edge.from)
     const target = byId.get(edge.to)
-    const from = [source.x + source.width / 2, source.y + source.height]
-    const to = [target.x + target.width / 2, target.y]
+    // 端点按两个图形的相对位置选边：横向为主时从左/右边出发，竖向为主时从上/下边出发。
+    // 早期固定「下边中点 → 上边中点」，竖向流程没问题，但横向排布（如架构图、S 形流程）
+    // 会把线画成绕来绕去的斜线。这里按主方向判断，两种布局都自然。
+    const sourceCenter = [source.x + source.width / 2, source.y + source.height / 2]
+    const targetCenter = [target.x + target.width / 2, target.y + target.height / 2]
+    const deltaX = targetCenter[0] - sourceCenter[0]
+    const deltaY = targetCenter[1] - sourceCenter[1]
+    let from
+    let to
+    if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+      const forward = deltaX >= 0
+      from = [forward ? source.x + source.width : source.x, sourceCenter[1]]
+      to = [forward ? target.x : target.x + target.width, targetCenter[1]]
+    } else {
+      const forward = deltaY >= 0
+      from = [sourceCenter[0], forward ? source.y + source.height : source.y]
+      to = [targetCenter[0], forward ? target.y : target.y + target.height]
+    }
     // 刻意不做 boundId 绑定：绑定需要同时给出正确的连接点语义，写错会让整条线不渲染。
     // 用绝对坐标画一条直箭头，任何情况下都能显示；代价是拖动图形时线不会跟着走。
     const element = {
@@ -673,6 +765,10 @@ function boardExtent(elements) {
 export function apply(ctx, config) {
   const root = resolve(config.root)
   const hosted = { files: 0, skipped: [], rejected: [] }
+
+  // 启动时清一次上次残留的临时文件。异步任务必须自带 catch：rejection 冒到异步链里
+  // 会升级成 Harness 的 fatal load failure（本文件其它异步登记同理）。
+  sweepTemporaries(root).catch(() => {})
 
   // 静态应用：**同步**枚举 `app/` 并逐文件登记精确路由。
   //
@@ -1014,7 +1110,7 @@ export function registerBoardTools(scope, defineTool, root) {
 
   register(defineTool({
     name: 'board_write',
-    description: 'Create or overwrite a whiteboard in the DSH whiteboard workbench from a compact JSON spec: {"title": optional string, "nodes": [{"id","text","shape","x","y"}], "edges": [{"from","to","label"}]}. Omit x/y to let the tool lay the nodes out in layers. This tool replaces a document as a whole (pass mode="append" to add the drawing below the existing content instead), so call board_read before changing an existing board. The canvas reloads to show the result.',
+    description: `Create or overwrite a whiteboard in the DSH whiteboard workbench from a compact JSON spec: {"title": optional string, "nodes": [{"id","text","shape","x","y","fill","strokeColor","strokeWidth","fontColor"}], "edges": [{"from","to","label"}]}. Omit x/y to let the tool lay the nodes out in layers. Supported shapes: ${SHAPE_HINTS}; an unknown shape falls back to a rounded rectangle. fill / strokeColor / fontColor take hex colors (for example "#6DC4C4"), which keeps diagrams readable; titleColor does the same for the title. This tool replaces a document as a whole (pass mode="append" to add the drawing below the existing content instead), so call board_read before changing an existing board. The canvas reloads to show the result.`,
     parameters: {
       board: { type: 'string', required: true, description: 'Compact JSON spec, or a full .drawnix payload (with an elements array).' },
       name: { type: 'string', description: 'Document name; defaults to the spec title or a generic name.' },

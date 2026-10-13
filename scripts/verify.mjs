@@ -15,7 +15,7 @@
  * 用法：node scripts/verify.mjs
  */
 import assert from 'node:assert/strict'
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, unlinkSync, utimesSync, writeFileSync } from 'node:fs'
 import { register } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -187,7 +187,7 @@ ok('界面里的白板原品牌名与仓库链接已清除（菜单 GitHub 指�
 console.log('[verify] 服务端接口（内存宿主 + 临时数据目录）')
 
 const serverModule = await import(pathToFileURL(join(root, 'dsh', 'index.js')).href)
-const { apply, Config, boardSpecToElements, boardToText, elementText, normalizeBoardData, registerBoardTools } = serverModule
+const { apply, Config, boardSpecToElements, boardToText, elementText, normalizeBoardData, registerBoardTools, sweepTemporaries } = serverModule
 
 const dataRoot = mkdtempSync(join(tmpdir(), 'dsh-draw-verify-'))
 
@@ -297,6 +297,27 @@ const ghost = await post(host, '/session/data', { documentId: 'board-does-not-ex
 assert.equal(ghost.status, 404, '对不存在的文档保存必须 404，否则删除后会被自动保存复活')
 ok('拒绝为不存在的文档保存（删除后复活的竞态回归）')
 
+// 临时文件卫生：写入是「写临时文件 → 重命名」，进程被强杀时会在数据目录留下 `*.tmp-*`
+// （同类工作台的数据目录里实测见到过 5 个残留）。正常情况下不留，启动清理只删超期的。
+const documentsDir = join(dataRoot, 'documents')
+const temporaryPattern = /\.tmp-\d+-\d+$/
+assert.deepEqual(
+  readdirSync(documentsDir).filter((file) => temporaryPattern.test(file)),
+  [],
+  '正常保存后数据目录里不应有临时文件残留'
+)
+const staleTemporary = join(documentsDir, `stale.json.tmp-${process.pid}-1`)
+const liveTemporary = join(documentsDir, `live.json.tmp-${process.pid}-2`)
+writeFileSync(staleTemporary, '{}', 'utf8')
+writeFileSync(liveTemporary, '{}', 'utf8')
+const longAgo = new Date(Date.now() - 60 * 60 * 1000)
+utimesSync(staleTemporary, longAgo, longAgo)
+await sweepTemporaries(dataRoot)
+assert.equal(existsSync(staleTemporary), false, '超期临时文件应在启动清理时被删掉')
+assert.equal(existsSync(liveTemporary), true, '刚写入的临时文件不能被清理（可能与正在进行的写入竞争）')
+unlinkSync(liveTemporary)
+ok('临时文件卫生：正常保存无残留，启动清理只删超期文件、保留在写的文件')
+
 // 非法数据
 assert.equal((await post(host, '/session/data', { documentId: 'default', data: { viewport: {} } })).status, 400)
 assert.throws(() => normalizeBoardData({ hello: 1 }), /elements/)
@@ -396,8 +417,28 @@ const placed = boardSpecToElements({ nodes: [{ id: 'a', text: 'A', x: 500, y: 70
 assert.deepEqual(placed[0].points[0], [500, 700])
 assert.throws(() => boardSpecToElements({ edges: [] }), /nodes/)
 assert.throws(() => boardSpecToElements({ elements: [] }), /elements/)
-ok('紧凑描述 → 元素：分层布局、标签、显式坐标优先、缺 nodes 被拒')
+// 形状：白板的「开始/结束」等形状要能落到真实枚举值上（早期只认 12 种，别的会被静默降级）
+assert.equal(boardSpecToElements({ nodes: [{ id: 's', text: '开始', shape: '开始/结束' }] })[0].shape, 'terminal')
+assert.equal(boardSpecToElements({ nodes: [{ id: 'p', text: '并行', shape: 'parallelogram' }] })[0].shape, 'parallelogram')
+assert.equal(boardSpecToElements({ nodes: [{ id: 'u', text: '未知', shape: 'hexagon' }] })[0].shape, 'roundRectangle')
+// 配色：fill / strokeColor 落在元素上，字体颜色落在文本叶子上；非法颜色被忽略
+const colored = boardSpecToElements({
+  title: '配色',
+  titleColor: '#4E49BE',
+  nodes: [{ id: 'c', text: 'C', fill: '#6DC4C4', strokeColor: '#4E49BE', strokeWidth: 2, fontColor: '#ffffff' }]
+})
+assert.equal(colored[0].text.children[0].color, '#4E49BE')
+assert.equal(colored[1].fill, '#6DC4C4')
+assert.equal(colored[1].strokeColor, '#4E49BE')
+assert.equal(colored[1].strokeWidth, 2)
+assert.equal(colored[1].text.children[0].color, '#ffffff')
+assert.equal(boardSpecToElements({ nodes: [{ id: 'd', text: 'D', fill: 'red' }] })[0].fill, undefined)
+ok('紧凑描述 → 元素：分层布局、标签、显式坐标优先、形状映射、配色、缺 nodes 被拒')
 
+assert.ok(
+  boardToText([{ id: 't', type: 'geometry', shape: 'terminal', points: [[0, 0], [200, 80]], text: { type: 'paragraph', children: [{ text: '开始' }] } }]).includes('[开始/结束] 开始'),
+  '开始/结束形状应能读回'
+)
 assert.equal(elementText(shapes[1]), '需求评审')
 assert.equal(elementText({ data: { topic: { type: 'paragraph', children: [{ text: '中心' }] } } }), '中心')
 assert.equal(elementText({ texts: [{ text: { children: [{ text: '标签' }] } }] }), '标签')

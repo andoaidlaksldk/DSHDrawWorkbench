@@ -8,9 +8,12 @@
 
 仓库：<https://github.com/andoaidlaksldk/DSHDrawWorkbench>
 
-![DSH 画板 · 流程图](app/product_showcase/case-1.png)
+![DSH 画板 · 流程图](docs/screenshots/overview.png)
 
-![DSH 画板 · 思维导图](app/product_showcase/case-2.png)
+![DSH 画板 · 暗夜主题下的架构图](docs/screenshots/architecture.png)
+
+> 两图都是**最终可安装版本**的真实界面实拍（1600×900），画板内容为演示图形；
+> 复现命令见 `scripts/capture-screenshots.mjs`。
 
 ## 功能
 
@@ -29,7 +32,7 @@
 装进 DSH Desktop 的 Harness 数据目录（官方 Desktop profile 由应用的进程内插件管理器托管）：
 
 ```powershell
-pnpm pack                          # 产出 dsh-draw-workbench-1.0.0.tgz
+npm pack                           # 产出 dsh-draw-workbench-1.0.5.tgz
 node scripts/install-to-desktop.mjs --dry-run   # 先看计划
 node scripts/install-to-desktop.mjs             # 按 7 处记录写入并物化代际
 ```
@@ -37,7 +40,7 @@ node scripts/install-to-desktop.mjs             # 按 7 处记录写入并物化
 然后**完全退出并重新打开 DSH Desktop**，左侧工作台列表里会出现「DSH 画板」。
 
 > **不要删除 `dsh-draw-workbench-<版本>.tgz`**：管理器按它记录安装来源，删掉后下次启动
-> 会对账失败并把插件清掉（思维导图工作台踩过一次）。
+> 会对账失败并把插件清掉。
 
 ## 数据与接口
 
@@ -75,6 +78,10 @@ HTTP 接口（同源，前缀 `/api/dsh-draw-workbench`）：
 ```
 
 不写坐标时工具会按边的方向**分层布局**（入度为 0 的节点在第一层），所以开箱就是排好的。
+`shape` 支持 `rectangle`、`roundRectangle`、`ellipse`、`diamond`、`parallelogram`、`triangle`、
+`terminal`（开始/结束）、`text`；写别的值会退化成圆角矩形。
+节点还可以带 `fill`（填充）、`strokeColor`（描边）、`strokeWidth`、`fontColor`（文字颜色），
+标题可以带 `titleColor`，取值是十六进制颜色（如 `#6DC4C4`）；非法取值会被忽略。
 也可以直接传完整的 `.drawnix` 数据（带 `elements` 数组）做精确覆盖；
 `mode: "append"` 把新图追加到已有内容下方而不覆盖。
 
